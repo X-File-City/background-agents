@@ -1,0 +1,424 @@
+{
+  "id": "open-inspect-onboarding",
+  "title": "Open-Inspect Architecture Tour",
+  "description": "A guided walkthrough of the Open-Inspect background coding agent system — covering the three-tier architecture, bot integrations, and infrastructure.",
+  "version": "1.0.0",
+  "audience": "New Contributors & AI Assistants",
+  "prerequisites": [
+    "Basic familiarity with TypeScript and Python",
+    "Understanding of Cloudflare Workers and serverless concepts"
+  ],
+  "steps": [
+    {
+      "id": "step-1-welcome",
+      "title": "Welcome to Open-Inspect",
+      "description": "Open-Inspect is a background coding agent system that spawns sandboxed dev environments to work on GitHub repositories. The codebase is a monorepo — services are highlighted in blue, infrastructure in amber, and documentation in green. Let's explore the three-tier architecture: Web Client, Control Plane, and Data Plane.",
+      "estimatedTime": 30,
+      "focusDirectory": "",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "packages-layer",
+          "name": "Service Packages",
+          "color": "#3b82f6",
+          "items": [
+            { "path": "packages", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "infra-layer",
+          "name": "Infrastructure",
+          "color": "#f59e0b",
+          "items": [
+            { "path": "terraform", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "docs-layer",
+          "name": "Documentation",
+          "color": "#10b981",
+          "items": [
+            { "path": "docs", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "hover-directory",
+          "description": "Hover over the packages directory to see all services",
+          "target": "packages"
+        }
+      ]
+    },
+    {
+      "id": "step-2-shared",
+      "title": "Shared Foundation",
+      "description": "The shared package is the foundation — every other TypeScript service depends on it. It exports shared types, model definitions, auth utilities, logging, cron helpers, and LLM completion wrappers. Always build this package first when making type changes.",
+      "estimatedTime": 30,
+      "focusDirectory": "packages/shared",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "shared-core",
+          "name": "Core Exports",
+          "color": "#8b5cf6",
+          "items": [
+            { "path": "packages/shared/src/models.ts", "type": "file" },
+            { "path": "packages/shared/src/auth.ts", "type": "file" },
+            { "path": "packages/shared/src/logger.ts", "type": "file" },
+            { "path": "packages/shared/src/cron.ts", "type": "file" }
+          ],
+          "opacity": 0.8,
+          "renderStrategy": "fill"
+        },
+        {
+          "id": "shared-types",
+          "name": "Shared Types & Completions",
+          "color": "#06b6d4",
+          "items": [
+            { "path": "packages/shared/src/types", "type": "directory" },
+            { "path": "packages/shared/src/completion", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "click-file",
+          "description": "Click the highlighted file to see all supported LLM definitions",
+          "target": "packages/shared/src/models.ts"
+        }
+      ]
+    },
+    {
+      "id": "step-3-control-plane",
+      "title": "Control Plane — The Brain",
+      "description": "The control plane orchestrates everything. Each coding session lives in its own Durable Object with dedicated SQLite storage. The three highlighted areas — session management, the database layer, and the API routes — make up the core of this service.",
+      "estimatedTime": 45,
+      "focusDirectory": "packages/control-plane",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "session-do",
+          "name": "Session Durable Object",
+          "color": "#ef4444",
+          "items": [
+            { "path": "packages/control-plane/src/session", "type": "directory" }
+          ],
+          "opacity": 0.7,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "db-layer",
+          "name": "D1 Database Layer",
+          "color": "#3b82f6",
+          "items": [
+            { "path": "packages/control-plane/src/db", "type": "directory" }
+          ],
+          "opacity": 0.7,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "api-routes",
+          "name": "API Routes",
+          "color": "#f59e0b",
+          "items": [
+            { "path": "packages/control-plane/src/routes", "type": "directory" },
+            { "path": "packages/control-plane/src/router.ts", "type": "file" }
+          ],
+          "opacity": 0.7,
+          "renderStrategy": "fill"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "hover-directory",
+          "description": "Hover over the session directory — this is the core Durable Object",
+          "target": "packages/control-plane/src/session"
+        },
+        {
+          "type": "click-file",
+          "description": "Click the highlighted router to see the main request handler",
+          "target": "packages/control-plane/src/router.ts"
+        }
+      ]
+    },
+    {
+      "id": "step-4-data-plane",
+      "title": "Data Plane — Sandboxed Execution",
+      "description": "The data plane runs on Modal and manages sandboxed environments where coding agents execute. The infrastructure package (green) handles sandbox creation, image building, and the web API. The runtime package (purple) is what runs inside each sandbox — it bridges WebSocket communication back to the control plane and orchestrates the agent.",
+      "estimatedTime": 45,
+      "focusDirectory": "packages",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "modal-infra",
+          "name": "Modal Infrastructure",
+          "color": "#22c55e",
+          "items": [
+            { "path": "packages/modal-infra", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "sandbox-runtime",
+          "name": "Sandbox Runtime",
+          "color": "#a855f7",
+          "items": [
+            { "path": "packages/sandbox-runtime", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "hover-directory",
+          "description": "Hover over the infrastructure package to see the sandbox management code",
+          "target": "packages/modal-infra"
+        },
+        {
+          "type": "hover-directory",
+          "description": "Hover over the runtime package — this is what runs inside each sandbox",
+          "target": "packages/sandbox-runtime"
+        }
+      ]
+    },
+    {
+      "id": "step-5-web-client",
+      "title": "Web Client — The Dashboard",
+      "description": "The web app is the user-facing dashboard — GitHub OAuth, real-time session streaming, model selection, and automation scheduling. It connects to the control plane over WebSocket for live updates.",
+      "estimatedTime": 40,
+      "focusDirectory": "packages/web/src",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "app-routes",
+          "name": "App Routes",
+          "color": "#3b82f6",
+          "items": [
+            { "path": "packages/web/src/app", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "components",
+          "name": "UI Components",
+          "color": "#f97316",
+          "items": [
+            { "path": "packages/web/src/components", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "hooks-lib",
+          "name": "Hooks & Libraries",
+          "color": "#8b5cf6",
+          "items": [
+            { "path": "packages/web/src/hooks", "type": "directory" },
+            { "path": "packages/web/src/lib", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "hover-directory",
+          "description": "Hover over the app routes to see how pages are organized",
+          "target": "packages/web/src/app"
+        }
+      ]
+    },
+    {
+      "id": "step-6-bot-integrations",
+      "title": "Bot Integrations — Slack, GitHub, Linear",
+      "description": "Three Cloudflare Workers handle external platform integrations. Each one listens for events on its platform — Slack messages, GitHub PR comments, or Linear issue updates — and creates coding sessions through the control plane.",
+      "estimatedTime": 40,
+      "focusDirectory": "packages",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "slack",
+          "name": "Slack Bot",
+          "color": "#e11d48",
+          "items": [
+            { "path": "packages/slack-bot", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "github",
+          "name": "GitHub Bot",
+          "color": "#6366f1",
+          "items": [
+            { "path": "packages/github-bot", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "linear",
+          "name": "Linear Bot",
+          "color": "#0ea5e9",
+          "items": [
+            { "path": "packages/linear-bot", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "hover-directory",
+          "description": "Hover over the Slack integration — the largest of the three",
+          "target": "packages/slack-bot"
+        },
+        {
+          "type": "hover-directory",
+          "description": "Hover over the GitHub integration for PR review automation",
+          "target": "packages/github-bot"
+        }
+      ]
+    },
+    {
+      "id": "step-7-infrastructure",
+      "title": "Infrastructure as Code",
+      "description": "Terraform manages the entire deployment — workers, databases, KV stores, and hosting. The production environment defines configs for each service, and pushing to main auto-deploys everything via CI.",
+      "estimatedTime": 35,
+      "focusDirectory": "terraform",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "production",
+          "name": "Production Environment",
+          "color": "#ef4444",
+          "items": [
+            { "path": "terraform/environments/production", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "modules",
+          "name": "Reusable Modules",
+          "color": "#10b981",
+          "items": [
+            { "path": "terraform/modules", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "migrations",
+          "name": "D1 Migrations",
+          "color": "#f59e0b",
+          "items": [
+            { "path": "terraform/d1", "type": "directory" }
+          ],
+          "opacity": 0.6,
+          "renderStrategy": "border"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "hover-directory",
+          "description": "Hover over production to see all worker and service configs",
+          "target": "terraform/environments/production"
+        }
+      ]
+    },
+    {
+      "id": "step-8-full-picture",
+      "title": "The Full Picture",
+      "description": "Here's the complete data flow: a user prompt enters through the web client (or a bot integration), hits the control plane Durable Object over WebSocket, which provisions a sandbox on the data plane. Streaming events flow back through the same WebSocket chain. The shared package ties all TypeScript services together, and Terraform deploys everything. Check the resources below for the deep architecture dive.",
+      "estimatedTime": 30,
+      "focusDirectory": "",
+      "colorMode": "fileTypes",
+      "highlightLayers": [
+        {
+          "id": "tier-web",
+          "name": "Tier 1: Web Client",
+          "color": "#3b82f6",
+          "items": [
+            { "path": "packages/web", "type": "directory" }
+          ],
+          "opacity": 0.5,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "tier-control",
+          "name": "Tier 2: Control Plane",
+          "color": "#ef4444",
+          "items": [
+            { "path": "packages/control-plane", "type": "directory" }
+          ],
+          "opacity": 0.5,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "tier-data",
+          "name": "Tier 3: Data Plane",
+          "color": "#22c55e",
+          "items": [
+            { "path": "packages/modal-infra", "type": "directory" },
+            { "path": "packages/sandbox-runtime", "type": "directory" }
+          ],
+          "opacity": 0.5,
+          "renderStrategy": "border"
+        },
+        {
+          "id": "tier-bots",
+          "name": "Bot Integrations",
+          "color": "#f59e0b",
+          "items": [
+            { "path": "packages/slack-bot", "type": "directory" },
+            { "path": "packages/github-bot", "type": "directory" },
+            { "path": "packages/linear-bot", "type": "directory" }
+          ],
+          "opacity": 0.5,
+          "renderStrategy": "border"
+        }
+      ],
+      "resources": [
+        {
+          "title": "How It Works — Architecture Deep Dive",
+          "url": "docs/HOW_IT_WORKS.md",
+          "type": "documentation"
+        },
+        {
+          "title": "Getting Started Guide",
+          "url": "docs/GETTING_STARTED.md",
+          "type": "documentation"
+        },
+        {
+          "title": "Contributing Guidelines",
+          "url": "CONTRIBUTING.md",
+          "type": "documentation"
+        }
+      ],
+      "interactiveActions": [
+        {
+          "type": "explore",
+          "description": "Explore the full codebase — you now know where everything lives"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "author": "Claude",
+    "createdAt": "2026-04-03",
+    "tags": ["onboarding", "architecture", "three-tier", "background-agents"]
+  }
+}
